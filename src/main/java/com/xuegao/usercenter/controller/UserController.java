@@ -58,6 +58,19 @@ public class UserController {
         return userService.userLogin(userAccount, userPassword, request);
     }
 
+    @GetMapping("/current")
+    public User getCurrentUser(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null) {
+            return null;
+        }
+        Long userId = currentUser.getId();
+        // todo 校验用户是否合法
+        User user = userService.getById(userId);
+        return userService.getSafetyUser(user);
+    }
+
     @GetMapping("/search")
     public List<User> searchUser(String username, HttpServletRequest request) {
         if (!isAdmin(request)) {
@@ -91,7 +104,7 @@ public class UserController {
      */
     private boolean isAdmin(HttpServletRequest request) {
         // 鉴权 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);// 获取登陆态
         User user = (User) userObj;
         if (user == null || user.getUserRole() != ADMIN_ROLE) {
             return false;

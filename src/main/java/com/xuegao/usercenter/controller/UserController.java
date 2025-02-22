@@ -1,6 +1,10 @@
 package com.xuegao.usercenter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xuegao.usercenter.common.BaseResponse;
+import com.xuegao.usercenter.common.ErrorCode;
+import com.xuegao.usercenter.common.ResultUtils;
+import com.xuegao.usercenter.exception.BusinessException;
 import com.xuegao.usercenter.model.domain.User;
 import com.xuegao.usercenter.model.domain.request.UserLoginRequest;
 import com.xuegao.usercenter.model.domain.request.UserRegisterRequest;
@@ -30,7 +34,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public Long userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             return null;
         }
@@ -41,11 +45,19 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
-        return userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        return ResultUtils.success(result);
     }
 
+    /**
+     * 用户登录
+     *
+     * @param userLoginRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             return null;
         }
@@ -55,9 +67,31 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
         }
-        return userService.userLogin(userAccount, userPassword, request);
+        User user = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(user);
     }
 
+    /**
+     * 用户注销
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping("/logout")
+    public BaseResponse<Integer> userLogout(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        int result = userService.userLogout(request);
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 获取当前用户
+     *
+     * @param request
+     * @return
+     */
     @GetMapping("/current")
     public User getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -86,14 +120,15 @@ public class UserController {
     }
 
     @PostMapping("/delete")
-    public Boolean userDelete(@RequestBody Long id, HttpServletRequest request) {
+    public BaseResponse<Boolean> userDelete(@RequestBody Long id, HttpServletRequest request) {
         if (!isAdmin(request)) {
-            return false;
+            return null;
         }
         if(id <= 0){
-            return false;
+            return null;
         }
-        return userService.removeById(id);
+        boolean b = userService.removeById(id);
+        return ResultUtils.success(b);
     }
 
     /**
@@ -106,9 +141,6 @@ public class UserController {
         // 鉴权 仅管理员可查询
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);// 获取登陆态
         User user = (User) userObj;
-        if (user == null || user.getUserRole() != ADMIN_ROLE) {
-            return false;
-        }
-        return true;
+        return user != null && user.getUserRole() == ADMIN_ROLE;
     }
 }

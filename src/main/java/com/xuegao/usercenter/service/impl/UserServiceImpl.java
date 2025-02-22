@@ -2,6 +2,8 @@ package com.xuegao.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xuegao.usercenter.common.ErrorCode;
+import com.xuegao.usercenter.exception.BusinessException;
 import com.xuegao.usercenter.model.domain.User;
 import com.xuegao.usercenter.service.UserService;
 import com.xuegao.usercenter.mapper.UserMapper;
@@ -42,28 +44,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 1.校验
         // maven->apache common lang->三者都不为空
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            // todo 修改为自定义异常
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
-        // 账户大于4
+        // 账号大于4
         if (userAccount.length() < 4) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号小于4");
         }
-        // 密码大于8或校验码大于8
+        // 密码大于8且校验码大于8
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码小于8或校验码小于8");
         }
-        // 账户不能包含特殊字符 正则表达式
+        // 账号不能包含特殊字符 正则表达式
         String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (matcher.find()) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号有特殊字符");
         }
         // 密码和校验密码要相同
         if(!userPassword.equals(checkPassword)) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码和校验密码不同");
         }
-        // 账户不能重复
+        // 账号不能重复
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
         long count = userMapper.selectCount(queryWrapper);
@@ -146,7 +147,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setId(originUser.getId());
         safetyUser.setUsername(originUser.getUsername());
         safetyUser.setUserAccount(originUser.getUserAccount());
-        safetyUser.setUserPassword(originUser.getUserPassword());
+        // safetyUser.setUserPassword(originUser.getUserPassword());
         safetyUser.setAvatarUrl(originUser.getAvatarUrl());
         safetyUser.setGender(originUser.getGender());
         safetyUser.setPhone(originUser.getPhone());
@@ -155,6 +156,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setCreateTime(originUser.getCreateTime());
         return safetyUser;
+    }
+
+    /**
+     * 用户注销
+     *
+     * @param request
+     */
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
     }
 }
 

@@ -36,7 +36,8 @@ public class UserController {
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
-            return null;
+//            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
@@ -59,13 +60,13 @@ public class UserController {
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
-            return null;
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
         // 校验 都不为空
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            return null;
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
         User user = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(user);
@@ -122,10 +123,10 @@ public class UserController {
     @PostMapping("/delete")
     public BaseResponse<Boolean> userDelete(@RequestBody Long id, HttpServletRequest request) {
         if (!isAdmin(request)) {
-            return null;
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        if(id <= 0){
-            return null;
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean b = userService.removeById(id);
         return ResultUtils.success(b);

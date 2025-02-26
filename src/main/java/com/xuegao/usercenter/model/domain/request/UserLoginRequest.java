@@ -6,7 +6,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 用户登陆请求体
+ * 用户登录请求体
  *
  * @author xuegao
  */

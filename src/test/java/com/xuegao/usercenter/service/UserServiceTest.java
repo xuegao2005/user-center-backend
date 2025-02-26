@@ -25,6 +25,7 @@ class UserServiceTest {
         user.setPhone("123456789");
         user.setEmail("123456@qq.com");
 
+        // 往数据库里插入一条数据
         boolean result = userService.save(user);
 
         System.out.println(user.getId());

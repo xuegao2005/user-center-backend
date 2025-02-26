@@ -8,3 +8,5 @@ spring:
   # 失效时间一天
   session:
     timeout: 86400
+  profiles:
+    active: prod

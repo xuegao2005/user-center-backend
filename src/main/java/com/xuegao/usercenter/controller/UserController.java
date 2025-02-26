@@ -67,8 +67,6 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
-
-
         User user = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(user);
     }
@@ -142,7 +140,7 @@ public class UserController {
      */
     private boolean isAdmin(HttpServletRequest request) {
         // 鉴权 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);// 获取登陆态
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);// 获取登录态
         User user = (User) userObj;
         return user != null && user.getUserRole() == ADMIN_ROLE;
     }
